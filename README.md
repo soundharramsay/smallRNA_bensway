@@ -51,3 +51,39 @@ for fastq_file in "${fastq_files[@]}"; do
     samtools sort -o - - | 
     samtools view -F 4 - > "${filename%.fastq.gz}_n0_mapped.sam" &
 done
+
+
+######## merged text file 
+
+To perform a column-wise merge of column 1 and 7 from the provided text files and only include common lines based on column 1, you can use the join command along with some additional Unix utilities. Here's a step-by-step process:
+
+Extract column 1 and 7 from each file.
+Sort each file based on column 1.
+Use the join command to merge the sorted files based on column 1.
+Here's a command that accomplishes this:
+
+cut -f 1,7 -d $'\t' E10_1_Z8KO_k562_sample4_S4_L002_R1_001.featureCounts.txt > col1_7_1.txt
+cut -f 1,7 -d $'\t' E13_3_z8ko_sample7_S7_L002_R1_001.featureCounts.txt > col1_7_2.txt
+cut -f 1,7 -d $'\t' nt3_k562_sample3_S3_L002_R1_001.featureCounts.txt > col1_7_3.txt
+cut -f 1,7 -d $'\t' E13_1_z8ko_sample5_S5_L002_R1_001.featureCounts.txt > col1_7_4.txt
+cut -f 1,7 -d $'\t' nt1_k562_sample1_S1_L002_R1_001.featureCounts.txt > col1_7_5.txt
+cut -f 1,7 -d $'\t' E13_2_z8ko_sample6_S6_L002_R1_001.featureCounts.txt > col1_7_6.txt
+cut -f 1,7 -d $'\t' nt2_k562_sample2_S2_L002_R1_001.featureCounts.txt > col1_7_7.txt
+
+sort -t $'\t' -k1,1 col1_7_1.txt -o col1_7_1.txt
+sort -t $'\t' -k1,1 col1_7_2.txt -o col1_7_2.txt
+sort -t $'\t' -k1,1 col1_7_3.txt -o col1_7_3.txt
+sort -t $'\t' -k1,1 col1_7_4.txt -o col1_7_4.txt
+sort -t $'\t' -k1,1 col1_7_5.txt -o col1_7_5.txt
+sort -t $'\t' -k1,1 col1_7_6.txt -o col1_7_6.txt
+sort -t $'\t' -k1,1 col1_7_7.txt -o col1_7_7.txt
+
+join -t $'\t' -1 1 -2 1 col1_7_1.txt col1_7_2.txt | \
+join -t $'\t' -1 1 -2 1 - col1_7_3.txt | \
+join -t $'\t' -1 1 -2 1 - col1_7_4.txt | \
+join -t $'\t' -1 1 -2 1 - col1_7_5.txt | \
+join -t $'\t' -1 1 -2 1 - col1_7_6.txt | \
+join -t $'\t' -1 1 -2 1 - col1_7_7.txt > merged_output.txt
+
+rm col1_7_*.txt
+
