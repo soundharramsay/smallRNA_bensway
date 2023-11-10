@@ -52,6 +52,26 @@ for fastq_file in "${fastq_files[@]}"; do
     samtools view -F 4 - > "${filename%.fastq.gz}_n0_mapped.sam" &
 done
 
+###### sam to bam 
+
+#!/bin/bash
+specify the directory where your SAM files are located
+sam_directory="./"
+
+# Specify the path to the reference FASTA file
+reference_fasta="/athena/kleavelandlab/store/sor4003/2_star_genome_index_nexflow/small_RNA_genomes/mirBASE/bowtie_1_3_1_spack_load_index_mirBase/mature_mirBASE_all.fa"
+
+# Iterate over each SAM file in the directory
+for sam_file in "$sam_directory"/*.sam; do
+    # Generate the corresponding BAM filename
+    bam_file="${sam_file%.sam}.bam"
+
+    # Create a new header using samtools reheader
+    samtools view -H "$sam_file" | sed '/^@SQ/s/$/ UR:unknown/' | samtools reheader - "$sam_file" > "$bam_file"
+
+    echo "Converted $sam_file to $bam_file"
+done
+
 
 ######## merged text file 
 
@@ -87,3 +107,24 @@ join -t $'\t' -1 1 -2 1 - col1_7_7.txt > merged_output.txt
 
 rm col1_7_*.txt
 
+############  grep the microRNA from fastq files 
+# Create separate .txt files for each pattern match
+for file in trim_*.fastq.gz; do
+  pattern="TGGAAGACTAGTGATTTTGTTGTT"
+  zgrep "$pattern" "$file" > "${file}_mir7_result.txt"
+done
+
+
+############# counting the line 
+# Create a result.txt file to store the counts
+echo -e "Filename\tNumber_of_Lines\tAverage_Line_Length" > result.txt
+
+# Iterate over each text file
+for file in *.txt; do
+  # Get the counts
+  line_count=$(wc -l < "$file")
+  avg_line_length=$(awk '{ total += length($0) } END { print total/NR }' "$file")
+
+  # Append the results to result.txt
+  echo -e "$file\t$line_count\t$avg_line_length" >> result.txt
+done
